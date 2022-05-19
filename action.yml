@@ -4,7 +4,11 @@ author: aparcar
 runs:
   using: 'composite'
   steps:
-    - run: sudo chown -R 1000:1000 $GITHUB_WORKSPACE
+    - run: echo "ARTIFACTS_DIR=${ARTIFACTS_DIR:-$GITHUB_WORKSPACE}" >> $GITHUB_ENV
+      shell: bash
+    - run: echo "FEED_DIR=${FEED_DIR:-$GITHUB_WORKSPACE}" >> $GITHUB_ENV
+      shell: bash
+    - run: sudo chown -R 1000:1000 $ARTIFACTS_DIR $FEED_DIR
       shell: bash
     - run: docker build --build-arg CONTAINER --build-arg ARCH -t sdk $GITHUB_ACTION_PATH
       shell: bash
@@ -13,7 +17,6 @@ runs:
           --env BUILD_LOG \
           --env EXTRA_FEEDS \
           --env FEEDNAME \
-          --env GITHUB_WORKSPACE \
           --env IGNORE_ERRORS \
           --env KEY_BUILD \
           --env NO_DEFAULT_FEEDS \
@@ -21,10 +24,11 @@ runs:
           --env NO_SHFMT_CHECK \
           --env PACKAGES \
           --env V \
-          --workdir /github/workspace \
-          -v $(pwd):/github/workspace \
-          -v $GITHUB_WORKSPACE:$GITHUB_WORKSPACE \
+          -v $ARTIFACTS_DIR:/artifacts \
+          -v $FEED_DIR:/feed \
           sdk
       shell: bash
-    - run: sudo chown -R --reference=$GITHUB_WORKSPACE/.. $GITHUB_WORKSPACE
+    - run: sudo chown -R --reference=$ARTIFACTS_DIR/.. $ARTIFACTS_DIR
+      shell: bash
+    - run: sudo chown -R --reference=$FEED_DIR/.. $FEED_DIR
       shell: bash
